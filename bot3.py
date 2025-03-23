@@ -5,6 +5,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+
 def start_chrome():
     """Abre Chrome con depuración remota activada automáticamente"""
     chrome_path = "C:/Program Files/Google/Chrome/Application/chrome.exe"
@@ -14,6 +15,7 @@ def start_chrome():
     print("🚀 Chrome iniciado con depuración remota...")
     time.sleep(5)
 
+
 def connect_to_chrome():
     """Conecta Selenium a la instancia de Chrome ya abierta"""
     chrome_options = Options()
@@ -22,75 +24,72 @@ def connect_to_chrome():
     print("✅ Conectado a Chrome correctamente")
     return driver
 
-def count_and_extract_ticket_links(driver):
-    """Cuenta los tickets y extrae los enlaces a los tickets"""
+
+def extract_ticket_info(driver):
+    """Extrae el estado, código, sede y enlaces de los tickets en la lista"""
     try:
-        print("⏳ Buscando el iframe 'gsft_main' usando JavaScript...")
-
-        # Esperar a que haya iframes en la página
-        WebDriverWait(driver, 15).until(
-            lambda d: d.execute_script("return window.frames.length;") > 0
-        )
-
-        # Ejecutar JavaScript para acceder al iframe y contar los tickets
-        ticket_links = driver.execute_script("""
+        ticket_data = driver.execute_script("""
             let iframe = window.frames[0];  // Acceder al primer iframe
             let rows = iframe.document.querySelectorAll("tbody.list2_body tr");
-            let links = [];
+            let tickets = [];
             rows.forEach(row => {
+                let cols = row.querySelectorAll("td");
                 let link = row.querySelector("a");
-                if (link) {
-                    links.push(link.href);  // Obtener el enlace de cada ticket
+                if (cols.length > 2 && link) {
+                    let codigo = cols[2].innerText.trim();
+                    let sede = cols[5].innerText.trim();
+                    let estado = cols[8].innerText.trim();
+                    let url = link.href;
+                    tickets.push({ estado, codigo, sede, url });
                 }
             });
-            return links;
+            return tickets;
         """)
-
-        print(f"📋 Enlaces de tickets encontrados: {len(ticket_links)}")
-        for idx, link in enumerate(ticket_links):
-            print(f"🔗 Enlace del ticket {idx + 1}: {link}")
         
-        return ticket_links
+        for idx, ticket in enumerate(ticket_data):
+            print(f"🎫 Ticket {idx + 1}: | Código: {ticket['codigo']} | Sede: {ticket['sede']} | Estado: {ticket['estado']}")
+        
+        return ticket_data
     except Exception as e:
-        print(f"❌ Error al extraer los enlaces de los tickets: {e}")
+        print(f"❌ Error al extraer datos del ticket: {e}")
         return []
 
-def extract_ticket_data(driver, ticket_url):
-    """Navega a un ticket específico y extrae su información"""
-    try:
-        print(f"🔍 Abriendo el ticket: {ticket_url}")
-        driver.get(ticket_url)  # Abrir solo el ticket específico
-        time.sleep(5)  # Esperar a que la página cargue completamente
 
+def extract_ticket_table_info(driver, ticket_url):
+    """Extrae solo el estado y el porcentaje de negocio transcurrido dentro del ticket"""
+    try:
+        driver.get(ticket_url)
+ 
         # Esperar a que haya iframes en la página
         WebDriverWait(driver, 15).until(
             lambda d: d.execute_script("return window.frames.length;") > 0
         )
 
-        # Ejecutar JavaScript para extraer datos del ticket abierto
+        # Ejecutar JavaScript para acceder al iframe y extraer solo los datos deseados
         script = """
-        let iframe = window.frames[0]; 
-        let table = iframe.document.querySelector("tbody.list2_body");
-        if (!table) return [];
-        let rows = table.querySelectorAll("tr");
+        let iframe = window.frames[0];
+        let tables = iframe.document.querySelectorAll("tbody.list2_body");
+        if (tables.length === 0) return [];
+        let rows = tables[0].querySelectorAll("tr");
         let data = [];
         rows.forEach(row => {
             let columns = row.querySelectorAll("td");
-            let rowData = [];
-            columns.forEach(col => {
-                rowData.push(col.innerText.trim());
-            });
-            data.push(rowData);
+            if (columns.length > 7) {
+                let estado = columns[6].innerText.trim();
+                let porcentaje = columns[9].innerText.trim();
+                data.push({ estado, porcentaje });
+            }
         });
         return data;
         """
         ticket_data = driver.execute_script(script)
 
-        print(f"📋 Datos extraídos del ticket: {ticket_url}")
+        print(f"📋 Datos extraídos en la primera tabla: {len(ticket_data)} registros")
         for idx, row in enumerate(ticket_data):
-            print(f"📝 {idx + 1}: {row}")
+            print(f"📝 Registro {idx + 1}: Estado: {row['estado']}, Porcentaje: {row['porcentaje']}")
     except Exception as e:
-        print(f"❌ Error al extraer los datos del ticket: {e}")
+        print(f"❌ Error al extraer los datos: {e}")
+
 
 def main():
     start_chrome()
@@ -100,16 +99,15 @@ def main():
     driver.get(servicenow_url)
     print("🌐 Página cargada correctamente")
 
-    # Extraer los enlaces de los tickets
-    ticket_links = count_and_extract_ticket_links(driver)
+    # Extraer datos de los tickets
+    tickets = extract_ticket_info(driver)
+    
+    # Extraer datos de la tabla dentro de cada ticket
+    for ticket in tickets:
+        extract_ticket_table_info(driver, ticket['url'])
+    
+    driver.quit()
 
-    # Para cada enlace de ticket, extraer la información
-    # ticket_links[0]
-    # extract_ticket_data(driver, ticket_links[0])
-    for ticket_url in ticket_links:
-        extract_ticket_data(driver, ticket_url)
-
-    driver.quit()  # Cerrar Chrome después de extraer los datos
 
 if __name__ == "__main__":
     main()
