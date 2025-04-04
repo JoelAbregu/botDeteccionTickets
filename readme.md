@@ -1,3 +1,4 @@
+ 
 # 🤖 Bot de Monitoreo de Tickets en ServiceNow vía WhatsApp
 
 Este proyecto es un **bot automatizado en Python** que se conecta a **ServiceNow** y detecta nuevos tickets en tiempo real. Cuando se identifica un nuevo ticket asignado, el bot **envía una notificación instantánea a través de WhatsApp** al responsable correspondiente, mejorando significativamente la atención de incidencias.
