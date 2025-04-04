@@ -1,105 +1,92 @@
-Perfecto. Aquí tienes el `README.md` mejorado con un diseño claro, bien estructurado y presentable para un repositorio en GitHub. Incluye secciones con encabezados jerárquicos, bloques de código, íconos Markdown (sin emoticones), y formato consistente para facilitar la lectura:
+---
+
+# 🎯 Monitor de Tickets ServiceNow con Alertas por WhatsApp
+
+Este proyecto automatiza el monitoreo de incidentes en **ServiceNow**, extrae información clave de los tickets asignados y envía alertas mediante **WhatsApp** a través de la biblioteca `pywhatkit`. Ideal para equipos de soporte técnico que necesitan mantenerse informados en tiempo real sobre nuevos tickets o cambios en su estado.
 
 ---
 
-```markdown
-# 🛠️ Ticket Monitoring Bot
+## 🚀 Características
 
-Un bot desarrollado en Python que monitorea tickets en ServiceNow y envía notificaciones automáticas por WhatsApp cuando se detectan nuevos tickets asignados.
-
----
-
-## 📌 Descripción
-
-Este sistema automatizado permite:
-
-- Detectar si Chrome está abierto en modo de depuración.
-- Conectarse al navegador para buscar o abrir la pestaña de ServiceNow.
-- Extraer información de cada ticket desde el iframe principal.
-- Evaluar el SLA y estado de cada ticket.
-- Enviar alertas automáticas por WhatsApp sobre tickets asignados.
+- Conexión automática a Chrome con **depuración remota**.
+- Detección inteligente de **nuevos tickets**.
+- Extracción de detalles clave: código, estado, sede, asignado, descripción, SLA.
+- Envío instantáneo de mensajes de **WhatsApp** con formato personalizado.
+- Monitoreo cíclico y actualización en tiempo real desde la interfaz de ServiceNow.
+- Integración con **Selenium WebDriver** y control de procesos con `psutil`.
 
 ---
 
-## ⚙️ Tecnologías y Librerías
+## 🧠 Tecnologías utilizadas
 
-- **Python 3.7+**
-- **Selenium**
-- **PyWhatKit**
-- **psutil**
-- **Google Chrome (con debugging remoto)**
-
----
-
-## 📁 Estructura del Proyecto
-
-| Módulo / Función | Descripción |
-|------------------|-------------|
-| `start_chrome()` | Inicia Chrome con el puerto de depuración remota si no está activo. |
-| `connect_to_chrome()` | Conecta Selenium al navegador. |
-| `ensure_servicenow_tab(driver, url)` | Abre o verifica la pestaña de ServiceNow. |
-| `extract_ticket_info(driver)` | Obtiene información de cada ticket. |
-| `extract_ticket_table_info(driver, ticket)` | Evalúa el SLA de cada ticket. |
-| `send_whatsapp_ticket(ticket, numero)` | Envía notificación por WhatsApp si el ticket es relevante. |
+- `Python 3.x`
+- `Selenium`
+- `pywhatkit`
+- `psutil`
+- `subprocess`, `socket`, `time`
 
 ---
 
-## 🧪 Instalación y Uso
+## ⚙️ Requisitos previos
 
-### 1. Clonar el repositorio
+- Tener **Google Chrome** instalado en:
+  ```
+  C:/Program Files/Google/Chrome/Application/chrome.exe
+  ```
+- Ejecutar Chrome con el siguiente comando para habilitar la depuración remota:
 
-```bash
-git clone https://github.com/tu-usuario/ticket-monitoring-bot.git
-cd ticket-monitoring-bot
+  ```bash
+  chrome.exe --remote-debugging-port=9222 --user-data-dir=C:/ChromeProfile
+  ```
+
+- Instalar las dependencias con pip:
+
+  ```bash
+  pip install pywhatkit selenium psutil
+  ```
+
+---
+
+## 🧪 Cómo usar
+
+1. **Ejecuta el script principal:**
+
+   ```bash
+   python main.py
+   ```
+
+2. El bot abrirá o se conectará a Chrome, navegará al listado de tickets de ServiceNow y comenzará a monitorear nuevos casos.
+
+3. Cuando se detecte un nuevo ticket con ciertas condiciones (por ejemplo, estado *Asignado* y sede específica), se enviará una notificación por WhatsApp al número configurado.
+
+---
+
+## 📌 Personalización
+
+Puedes modificar las condiciones de envío de mensajes editando la sección:
+
+```python
+if ticket['estado'] == "Asignado" and ticket['sede'] == "Pisco Sur" and ticket['asignado'] == "SoporteTI - Centro":
+    send_whatsapp_ticket(ticket, "+51977470126")
 ```
 
-### 2. Instalar dependencias
+---
 
-```bash
-pip install -r requirements.txt
-```
+## 🛑 Detener el bot
 
-> Asegúrate de tener `Chrome` instalado y que exista un perfil en `C:/ChromeProfile`.
-
-### 3. Ejecutar el bot
-
-```bash
-python main.py
-```
-
-> El script abrirá Chrome, se conectará a ServiceNow y comenzará a monitorear los tickets.
+Para finalizar la ejecución, presiona `Ctrl + C` o implementa un evento externo que active `stop_event`.
 
 ---
 
-## ⚠️ Consideraciones
+## 📎 Notas importantes
 
-- El uso de WhatsApp Web mediante `pywhatkit` requiere que la sesión esté iniciada.
-- Se recomienda supervisar el uso de recursos si se ejecuta constantemente en segundo plano.
-- Este bot **no** guarda información sensible ni credenciales.
-
----
-
-## ✅ Requisitos Previos
-
-- Chrome instalado (ruta por defecto: `C:/Program Files/Google/Chrome/Application/chrome.exe`)
-- Usuario logueado previamente en WhatsApp Web
-- Acceso autorizado a ServiceNow desde el navegador
-
----
-
-## 🤝 Contribuciones
-
-Las contribuciones son bienvenidas. Si deseas mejorar funcionalidades, optimizar el código o reportar errores, no dudes en hacer un pull request o abrir un issue.
-
----
-
-## 📜 Licencia
-
-Este proyecto está licenciado bajo los términos del MIT License.
+- El script usa `window.frames[0]` para acceder al iframe de ServiceNow. Asegúrate de que la estructura del HTML no haya cambiado.
+- Para evitar bloqueos o errores por tiempos de carga, se utilizan `time.sleep()` estratégicamente. Estos valores pueden ajustarse según el rendimiento de tu red o dispositivo.
+- WhatsApp Web puede requerir estar autenticado previamente para enviar mensajes.
 
 ---
 
 ## 👨‍💻 Autor
 
-Joel Abregu Manrique  
+**Joel Abregu Manrique**  
  
